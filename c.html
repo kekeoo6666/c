@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>综合练习2（全题库） - 自动判分版</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --panel: #111827;
+    --panel2: #0f172a;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --border: rgba(255,255,255,.10);
+    --ok: #10b981;
+    --bad: #ef4444;
+    --warn: #f59e0b;
+    --link: #60a5fa;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, #0b0f14 0%, #090d12 100%);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif;
+    line-height: 1.45;
+  }
+  a { color: var(--link); }
+  .wrap {
+    max-width: var(--contentW);
+    margin: 0 auto;
+    padding: 14px 14px calc(var(--bottomH) + 28px);
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    backdrop-filter: blur(10px);
+    background: rgba(11,15,20,.7);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    max-width: var(--contentW);
+    margin: 0 auto;
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .2px;
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .ctrl {
+    background: rgba(17,24,39,.75);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: var(--shadow);
+  }
+  .ctrl-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .pill {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(15,23,42,.6);
+  }
+  .pill strong { color: var(--text); font-weight: 700; }
+  .btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,.8);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: transform .04s ease, border-color .12s ease;
+  }
+  .btn:hover { border-color: rgba(255,255,255,.22); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background: rgba(59,130,246,.25);
+    border-color: rgba(59,130,246,.5);
+  }
+  .btn.danger {
+    background: rgba(239,68,68,.18);
+    border-color: rgba(239,68,68,.45);
+  }
+  .btn.ghost {
+    background: rgba(17,24,39,.45);
+  }
+  .input {
+    width: 100%;
+    background: rgba(15,23,42,.7);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+  .input:focus { border-color: rgba(96,165,250,.65); }
+  .section { margin-top: 14px; }
+  .section h2 {
+    margin: 14px 0 8px;
+    font-size: 15px;
+    color: #f3f4f6;
+  }
+  .q {
+    background: rgba(17,24,39,.70);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin: 8px 0;
+    box-shadow: var(--shadow);
+  }
+  .q.correct { border-color: rgba(16,185,129,.55); }
+  .q.wrong { border-color: rgba(239,68,68,.55); }
+  .q.unanswered { border-color: rgba(245,158,11,.55); }
+  .q-head {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .q-title {
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .q-meta {
+    color: var(--muted);
+    font-size: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .tag {
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,.55);
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+  }
+  .tag.ok { border-color: rgba(16,185,129,.55); color: #a7f3d0; }
+  .tag.bad { border-color: rgba(239,68,68,.55); color: #fecaca; }
+  .tag.warn { border-color: rgba(245,158,11,.55); color: #fde68a; }
+  .stem {
+    margin-top: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13px;
+  }
+  .options {
+    margin-top: 10px;
+    display: grid;
+    gap: 8px;
+  }
+  .opt {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,.55);
+    cursor: pointer;
+    user-select: none;
+  }
+  .opt:hover { border-color: rgba(255,255,255,.22); }
+  .opt input { margin-top: 2px; }
+  .opt .letter {
+    width: 20px;
+    font-weight: 800;
+    color: #c7d2fe;
+  }
+  .opt .text {
+    flex: 1;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13px;
+    color: #e5e7eb;
+  }
+  .opt.correct {
+    border-color: rgba(16,185,129,.65);
+    background: rgba(16,185,129,.10);
+  }
+  .opt.wrong {
+    border-color: rgba(239,68,68,.65);
+    background: rgba(239,68,68,.10);
+  }
+  .answer-line {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    display: none;
+  }
+  .answer-line.show { display: block; }
+  .answer-line b { color: #f3f4f6; }
+  .bottom-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    background: rgba(11,15,20,.78);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+  }
+  .bottom-inner {
+    max-width: var(--contentW);
+    margin: 0 auto;
+    padding: 10px 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .status {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .status b { color: var(--text); }
+  .right-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+  .note {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 8px 0 0;
+  }
+  @media (max-width: 720px) {
+    .controls { grid-template-columns: 1fr; }
+  }
+/* 左侧浮动分类导航 */
+:root { --sideW: 200px; --contentW: 1040px; --headerH: 80px; --bottomH: 64px; }
+
+.sidebar{
+  position: fixed;
+  left: 12px;
+  top: calc(var(--headerH) + 10px);
+  bottom: calc(var(--bottomH) + 10px);
+  width: var(--sideW);
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  background: #f0f0f0;
+  z-index: 20;
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+.side-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom: 10px;
+}
+.side-title{ font-weight: 800; }
+.side-top{
+  font-size: 12px;
+  text-decoration: none;
+  padding: 4px 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  color: #000;
+}
+.side-group{ margin-top: 12px; }
+.side-group-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom: 8px;
+}
+.side-link{
+  font-weight: 700;
+  text-decoration: none;
+  color: inherit;
+}
+.side-badge{
+  font-size: 12px;
+  color: #666;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f4f4f4;
+}
+.nav-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+  gap: 5px;
+}
+.nav-item{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 5px 0;
+  font-size: 11px;
+  border-radius: 9px;
+  border: 1px solid #eee;
+  text-decoration: none;
+  color: #000;
+  background: #fff;
+  user-select:none;
+}
+.nav-item:hover{ background:#f6f6f6; }
+
+.nav-item.active{
+  background:#93c5fd;
+  border-color:#3b82f6;
+  font-weight:700;
+}
+.nav-item.active:hover{ background:#60a5fa; }
+
+.wrap{ margin-left: calc(var(--sideW) + 32px); margin-right: 16px; }
+.header-inner{ margin-left: calc(var(--sideW) + 32px); margin-right: 16px; }
+.bottom-inner{ margin-left: calc(var(--sideW) + 32px); margin-right: 16px; }
+.q{ scroll-margin-top: calc(var(--headerH) + 18px); }
+
+/* 小屏：侧栏不固定，变为普通块 */
+@media (max-width: 900px){
+  .sidebar{
+    position: static;
+    width: auto;
+    left: auto; top: auto; bottom: auto;
+    margin: 12px 0;
+    box-shadow: none;
+  }
+  .wrap{ margin-left: 0; margin-right: auto; }
+  .header-inner{ margin-left: 0; margin-right: 0; }
+  .bottom-inner{ margin-left: 0; margin-right: 0; }
+  :root{ --sideW: 0px; }
+}
+</style>
+</head>
+<body>
+<header id="top">
+  <div class="header-inner">
+    <div class="title-row">
+      <div>
+        <h1>综合练习2（全题库）（单文件·自动判分）</h1>
+        <div class="sub">本页面会把作答自动保存到本机浏览器（localStorage）。可离线打开。</div>
+      </div>
+      <div class="stats" id="statsTop"></div>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <div class="ctrl-row">
+          <input id="jumpInput" class="input" placeholder="输入题号并回车跳转（例如：单选 58 输入 58；判断 10 输入 J10）" />
+          <button class="btn ghost" id="btnShowAll">显示全部</button>
+        </div>
+        <div class="note">跳转规则：输入 <b>数字</b> → 单选题；输入 <b>J数字</b> → 判断题。</div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-row">
+          <button class="btn ghost" id="btnFilterUnanswered">只看未答</button>
+          <button class="btn ghost" id="btnFilterWrong">只看错题</button>
+          <button class="btn ghost" id="btnToggleAnswers">显示答案</button>
+        </div>
+        <div class="note">“只看错题”需要先点一次 <b>提交判分</b> 才有意义。</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<aside class="sidebar" id="sideNav" aria-label="题目分类导航">
+  <div class="side-head">
+    <div class="side-title">分类</div>
+    <a class="side-top" href="#top">顶部</a>
+  </div>
+
+  <div class="side-group">
+    <div class="side-group-head">
+      <a class="side-link" href="#secJudge">判断题</a>
+      <span class="side-badge" id="sideJudgeStat"></span>
+    </div>
+    <div id="navJudge" class="nav-grid"></div>
+  </div>
+
+  <div class="side-group">
+    <div class="side-group-head">
+      <a class="side-link" href="#secSingle">单选题</a>
+      <span class="side-badge" id="sideSingleStat"></span>
+    </div>
+    <div id="navSingle" class="nav-grid"></div>
+  </div>
+</aside>
+
+<div class="wrap">
+  <div class="section" id="secJudge">
+    <h2>判断题（共 74 题）</h2>
+    <div id="judgeList"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section" id="secSingle">
+    <h2>单选题（共 134 题）</h2>
+    <div id="singleList"></div>
+  </div>
+
+  <p class="note">题目与答案来自你上传的文本整理（判断题 74 + 单选题 134）。</p>
+</div>
+
+<div class="bottom-bar">
+  <div class="bottom-inner">
+    <div class="status" id="statusBar">未判分</div>
+    <div class="right-buttons">
+      <button class="btn primary" id="btnGrade">提交判分</button>
+      <button class="btn" id="btnClear">清空选择</button>
+      <button class="btn danger" id="btnReset">清空本页所有保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const DATA = {"meta":{"title":"综合练习2（全题库）","generated":"2025-12-29","source":"Word"},"judge":[{"num":1,"stem":"已知 double a;使用scanf()函数输入一个数值给变量a,正确的函数调用是scanf(\"%lf\",&a);。","answer":"T"},{"num":2,"stem":"在switch语句中必须使用default。","answer":"F"},{"num":3,"stem":"C程序中注释部分可以出现在程序中任意合适的地方。","answer":"T"},{"num":4,"stem":"设变量已正确定义，执行以下程序段，连续输入三个字符k，则输出一个字符k。\nscanf(\"%c%c%c\", &ch1, &ch2, &ch3);\nprintf(\"%c\", ch2);","answer":"T"},{"num":5,"stem":"定义结构体时，成员的定义顺序不会影响结构体变量的内存布局。","answer":"F"},{"num":6,"stem":"指针变量存储的是某个变量的内存地址。","answer":"T"},{"num":7,"stem":"定义指针时， int* p1, p2;  语句中  p1  和  p2  都是 int 类型指针。","answer":"F"},{"num":8,"stem":"函数的返回值可以是多个，也可以没有返回值。","answer":"T"},{"num":9,"stem":"c程序总是从程序的第一条语句开始执行.","answer":"F"},{"num":10,"stem":"任何表达式语句都是表达式加分号组成的。","answer":"T"},{"num":11,"stem":"continue 不是结束本次循环，而是终止整个循环的执行。","answer":"F"},{"num":12,"stem":"当数组元素作为函数参数传递时，传递的是数组元素的值。","answer":"T"},{"num":13,"stem":"数组名本质上是指向数组首元素的常量指针，不能对其进行赋值操作。","answer":"T"},{"num":14,"stem":"指针和它所指向对象的类型必须保持一致。","answer":"T"},{"num":15,"stem":"可以通过“结构体变量名.成员名”的方式访问结构体中的成员。","answer":"T"},{"num":16,"stem":"字符串常量实质上是一个指向该字符串首字符的指针常量。","answer":"T"},{"num":17,"stem":"main函数必须位于其他函数之前。","answer":"F"},{"num":18,"stem":"执行以下while语句，将出现死循环。\ns = 0;\ni = 1;\nwhile(1){\nif(i > 10){\ncontinue;\n}\ns = s + i;\ni++;\n}","answer":"T"},{"num":19,"stem":"以下程序段中，break语句只执行一次。\nn = 9;\nfor(i = 1; i <= n; i++){\nfor(j = 1; j <= n; j++){\nif(i != 1 && j > i){\nbreak;\n}\nprintf( \"%4d\", i*j );\n}\nprintf(\"\\n\");\n}","answer":"F"},{"num":20,"stem":"continue 不是结束本次循环，而是终止整个循环的执行。","answer":"F"},{"num":21,"stem":"在switch语句中，每一个的case常量表达式的值可以相同。","answer":"F"},{"num":22,"stem":"在if语句的三种形式中，如果要想在满足条件时执行一组(多个)语句，则必须把这一组语句用{}括起来组成一个复合语句。","answer":"T"},{"num":23,"stem":"数组定义中，数组名后是用方括号括起来的常量表达式，不能用圆括号。","answer":"T"},{"num":24,"stem":"C 语言程序中可以有多个函数 , 但只能有一个主函数。","answer":"T"},{"num":25,"stem":"结构体成员的类型必须是基本数据类型。","answer":"F"},{"num":26,"stem":"结构体类型本身不占用内存空间，结构体变量占用内存空间。","answer":"T"},{"num":27,"stem":"在switch语句中，可以根据需要使用或不使用break语句。","answer":"T"},{"num":28,"stem":"通常 C 语句末尾以分号结束。","answer":"T"},{"num":29,"stem":"判断整型变量x是否是奇数的表达式为x%2!=0。","answer":"T"},{"num":30,"stem":"C语言中可以精确的存储一个小数","answer":"F"},{"num":31,"stem":"下面这段程序，若scanf输入k的值为50，则是无限循环，程序将始终运行、无法结束（假设运行该程序的计算机系统永远不会发生意外情况而崩溃或断电）。\n#include <stdio.h>\nint main(){\nint k;\nscanf(\"%d\", &k);\nint i=100;\nwhile(i > k){\nprintf(\"%d \", i);\ni++;\n}\nreturn 0;\n}","answer":"T"},{"num":32,"stem":"下面这段代码，用%d格式打印输出double型变量，不会进行取整，打印输出的结果不会为3。\n#include <stdio.h>\nint main(){\ndouble pi = 3.14159;\nprintf(\"%d\", pi);\nreturn 0;\n}","answer":"T"},{"num":33,"stem":"若有定义：float x=3.5;int z=8;则表达式 x+z%3/4 的值为3.5。","answer":"T"},{"num":34,"stem":"不同类型的结构变量之间也可以直接赋值。","answer":"F"},{"num":35,"stem":"函数的实参传递到形参有两种方式：值传递和地址传递。","answer":"T"},{"num":36,"stem":"printf函数输出数据时会根据格式控制符自动进行数据类型转换。","answer":"F"},{"num":37,"stem":"文件指针指向文件缓冲区中文件数据的存取位置。","answer":"F"},{"num":38,"stem":"若有定义：int x=2,y=3;，则表达式“x=x*3=2”符合C语言语法。","answer":"F"},{"num":39,"stem":"C语言的if语句嵌套时,if与else的匹配关系是每个else与if的匹配是任意的.","answer":"F"},{"num":40,"stem":"do-while循环的while后的分号可以省略。","answer":"F"},{"num":41,"stem":"for(;;);是错误的.","answer":"F"},{"num":42,"stem":"递归调用算法与相同功能的非递归算法相比，主要问题在于重复计算太多，而且调用本身需要分配额外的空间、传递数据和控制，所以时间和空间开销通常都比较大。","answer":"T"},{"num":43,"stem":"全局变量不能在函数内部被修改。","answer":"F"},{"num":44,"stem":"数组定义 char a[10]; 占内存10个字节.","answer":"T"},{"num":45,"stem":"C语言中的变量名属于标识符。","answer":"T"},{"num":46,"stem":"函数名代表该函数的入口地址。因此，可用函数名给指向函数的指针变量赋值。","answer":"T"},{"num":47,"stem":"指针数组的每个元素都是一个指针变量。","answer":"T"},{"num":48,"stem":"不同类型的指针变量是可以直接相互赋值的。","answer":"F"},{"num":49,"stem":"要通过函数调用来改变主调函数中某个变量的值，可以把指针作为函数的参数。","answer":"T"},{"num":50,"stem":"结构指针就是指向结构类型变量的指针。","answer":"T"},{"num":51,"stem":"C语言中不能用printf函数输出字符。","answer":"F"},{"num":52,"stem":"假设结构指针p已定义并正确赋值，其指向的结构变量有一个成员是int型的num，则语句 *p.num = 100; 是正确的。","answer":"F"},{"num":53,"stem":"C 语言的标识符由字母、数字和其他任意字符组成。","answer":"F"},{"num":54,"stem":"执行以下程序段后，输出 i = 10, j = 20。\nint i, j;\ni = 10;\nj = 20;\nprintf(\"i = %d, j = %d\", j, i);","answer":"F"},{"num":55,"stem":"对于定义int a[10],*p=a; 语句p=a+1;和a=a+1;都是合法的。","answer":"F"},{"num":56,"stem":"两个任意类型的指针可以使用关系运算符比较大小。","answer":"F"},{"num":57,"stem":"在定义嵌套的结构类型时，必须先定义成员的结构类型，再定义主结构类型。","answer":"T"},{"num":58,"stem":"在C语言中，一个语句可以书写在不同行上。","answer":"T"},{"num":59,"stem":"单步跟踪（Trace Step by Step）是常用的程序调试方法，即一步一步跟踪程序的执行过程，同时观察变量的变化情况。","answer":"T"},{"num":60,"stem":"假设k是整型变量，计算表达式1.0/k 后结果的数据类型是浮点型。","answer":"T"},{"num":61,"stem":"调用输入输出库函数时，编译预处理命令为#include <stdio.h>。","answer":"T"},{"num":62,"stem":"C语言中，每个字符型数据在ASCII字符集中都有一个惟一的次序值，即ASCII码。","answer":"T"},{"num":63,"stem":"C语言中不能用scanf 函数输入字符。","answer":"F"},{"num":64,"stem":"while语句和do - while语句的一般形式分别如下，其主要区别是：while 语句先判断循环条件，只有条件满足才进入循环，如果一开始条件就不满足，则循环一次都不执行。而do - while语句先执行循环体，后判断循环条件，所以无论循环条件的值如何，至少会执行一次循环体。\nwhile (表达式)\n循环体语句\ndo{\n循环体语句\n}while(表达式);","answer":"T"},{"num":65,"stem":"表达式 !(x>0||y>0) 等价于!(x>0)&&!(y>0)。","answer":"T"},{"num":66,"stem":"若表达式sizeof(int)的值为4，则int类型数据可以表示的最大整数为2\n31\n−1。","answer":"T"},{"num":67,"stem":"在所有的关系运算符（>=、>、==、!=、<=、<）中，优先级最低的运算符是“==、!=”。","answer":"T"},{"num":68,"stem":"执行语句putchar('S');后，在屏幕上显示的输出结果是'S'。","answer":"F"},{"num":69,"stem":"数组的基地址是在内存中存储数组的起始位置，数组名本身就是一个地址即指针值。","answer":"T"},{"num":70,"stem":"结构体成员必须是不同数据类型的变量。","answer":"F"},{"num":71,"stem":"数组的特点是,数组元素排列有序且数据类型相同.","answer":"T"},{"num":72,"stem":"阅读以下两段代码：\n1\nint i;\nfor(i=0; i<100; i++){\n/**\n此处省略代码若干行\n**/\n}\n2\nint i=0;\nwhile(i<100){\n/**\n此处省略代码若干行\n**/\ni++;\n}\n第一段用for语句实现的循环，一定等价于第二段用while语句实现的循环（两个循环中省略的代码相同）。","answer":"F"},{"num":73,"stem":"C编译器可以找出C源程序中所有的语法错误和逻辑错误。","answer":"F"},{"num":74,"stem":"08是正确的整型常量。","answer":"F"}],"single":[{"num":1,"stem":"当调用函数时，实参是一个数组名，则向函数传送的是（） 。","options":{"A":"数组的长度","B":"数组每个元素中的值","C":"数组的首地址","D":"数组每一个元素的地址"},"answer":"C"},{"num":2,"stem":"C 语言规定：在一个源程序中，main函数的位置（   ）。","options":{"A":"必须在最开始","B":"必须在系统调用的库函数的后面","C":"可以任意","D":"必须在最后"},"answer":"C"},{"num":3,"stem":"执行以下代码，输出的结果是：\n#include <stdio.h>\nvoid swap(int *x, int *y){\nint *z;\nz=x;  x=y;  y=z;\n}\nint main(){\nint x=8, y=3;\nswap(&x, &y);\nprintf(\"%d, %d\\n\", x, y);\nreturn 0;\n}","options":{"A":"3, 8","B":"8, 3","C":"输出结果不确定，有多种可能。","D":"程序有错，不能运行。"},"answer":"B"},{"num":4,"stem":"初始化一维数组，错误的是（    ）","options":{"A":"int a[10]={0};","B":"int a[10]={1, 2, 3};","C":"int a[]={1, 2, 3, 4, 5, 6, 7, 8, 9, 10};","D":"int a[10]={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};"},"answer":"D"},{"num":5,"stem":"包含5个元素的一维数组a的第3个元素可表达为（    ）","options":{"A":"a[2]","B":"a[3]","C":"a[-3]","D":"a[-2]"},"answer":"A"},{"num":6,"stem":"对于语句“int s=0,i=1; while(i=1) s+=i;”，说法正确的是（    ）","options":{"A":"while循环执行0次","B":"while循环执行1次","C":"while循环执行无限次","D":"以上说法都错"},"answer":"C"},{"num":7,"stem":"执行语句“int s=0,i=1; while(i<10) s+=i, i+=2; printf(\"%d\",s);”输出（    ）","options":{"A":"25","B":"30","C":"45","D":"50"},"answer":"A"},{"num":8,"stem":"在“for(表达式1; 表达式2; 表达式3) 循环体” 循环中，控制循环结束的是（    ）","options":{"A":"初始化表达式（表达式1）","B":"条件表达式（表达式2）","C":"迭代表达式（表达式3）","D":"循环体"},"answer":"B"},{"num":9,"stem":"正确表达“若变量a小于变量b，则借助变量c交换a、b”的语句（序列）是（    ）","options":{"A":"if(a<b) {c=a;a=b;b=c;}","B":"if a<b: c=a,a=b,b=c;","C":"if(a<b) c=a;a=b;b=c;","D":"if a<b: c=a;a=b;b=c;"},"answer":"A"},{"num":10,"stem":"可判断整数n为偶数的是（    ）","options":{"A":"n%2=0","B":"n%2==0","C":"n/2=0","D":"n/2==0"},"answer":"B"},{"num":11,"stem":"判断“b大于a，但小于c”的表达式是（    ）","options":{"A":"a<b<c","B":"b>a&b<c","C":"b>a&&b<c","D":"b>a||b<c"},"answer":"C"},{"num":12,"stem":"执行语句“int a=1, b=0; a++, ++b;”后a、b的值分别为（    ）","options":{"A":"2 2","B":"1 2","C":"2 1","D":"1 1"},"answer":"C"},{"num":13,"stem":"执行语句“int a=0, b=1, c; c=a++&&++b;”后a、b、c的值分别为（    ）","options":{"A":"0 1 0","B":"1 2 1","C":"0 2 1","D":"1 1 0"},"answer":"D"},{"num":14,"stem":"下列程序段的输出结果是 （            ）。（题目见图 image.png）","options":{"A":"a=1,b=1","B":"a=1,b=0","C":"a=2,b=2","D":"a=2,b=1"},"answer":"B"},{"num":15,"stem":"若有定义  int a = 10; int *p; ，要让指针  p  指向变量  a ，正确的赋值是（ ）","options":{"A":"p = a;","B":"p = &a;","C":"*p = a;","D":"*p = &a;"},"answer":"B"},{"num":16,"stem":"在 C 语言中，用于从键盘输入数据的标准函数是（ ）","options":{"A":"input","B":"in","C":"scanf","D":"printf"},"answer":"C"},{"num":17,"stem":"下列是合法的C语言标识符的是__________。","options":{"A":"-a1","B":"a[i]","C":"a2_i","D":"int t"},"answer":"C"},{"num":18,"stem":"已知字母‘A’的ASCII码为十进制数65，且有定义“char c;”，则执行语句“c='A'+'6'-'3';”后，变量c的值为__________。","options":{"A":"69","B":"'D'","C":"错误","D":"'d'"},"answer":"B"},{"num":19,"stem":"若有定义“int n; float f=13.8;”，则执行语句“n=(int)f%3;”后，变量n的值是__________。","options":{"A":"1","B":"4","C":"4.333333","D":"4.6"},"answer":"A"},{"num":20,"stem":"执行以下代码\n#include <stdio.h>\nint main(){\nint n, a, b;\na = b = 11;\nn = 6;\nif(n % 2 == 0)\na += 2,\nb += 3;\nelse\na += 3;\nb ++;\nprintf(\"%d, %d\", a, b);\nreturn 0;\n}\n打印输出的内容是：","options":{"A":"14, 12","B":"14, 15","C":"13, 14","D":"13, 15","E":"13, 13","F":"13, 16","G":"12, 15","H":"14, 13","I":"程序有错，不能运行。"},"answer":"B"},{"num":21,"stem":"执行以下代码\n#include <stdio.h>\nint main(){\nint a=3, b=4;\nif(!a);\nb++;\nprintf(\"%d%d\", a, b);\nreturn 0;\n}\n打印输出的内容是：","options":{"A":"34","B":"35","C":"04","D":"程序有错，不能运行。"},"answer":"B"},{"num":22,"stem":"执行以下代码\n#include <stdio.h>\nint main(){\nint n=0;\ndouble k=2;\nswitch(k){\ncase 1:\nn += 10;\nbreak;\ncase 2:\nn += 20;\ncase 3:\nn += 30;\nbreak;\n}\nprintf(\"%d\", n);\nreturn 0;\n}\n打印输出的内容是：","options":{"A":"20","B":"30","C":"50","D":"程序有错，不能运行。"},"answer":"D"},{"num":23,"stem":"C语言中while和do-while循环的主要区别是（）。","options":{"A":"do-while的循环体至少无条件执行一次","B":"while的循环控制条件比do-while的循环控制条件严格","C":"do-while允许从外部转到循环体内","D":"do-while的循环体不能是复合语句"},"answer":"A"},{"num":24,"stem":"设有定义语句“char s[12] = \"string\" ;”，则语句“printf(\"%d\\n\",strlen(s));”的输出是（）。","options":{"A":"6","B":"7","C":"11","D":"12"},"answer":"A"},{"num":25,"stem":"下列程序的运行结果是（）。\n#include <stdio.h>\nvoid fun(int *x,int *y)\n{\nprintf(\"%d %d\",*x,*y);\n*x=3;\n*y=4;\n}\nint main()\n{\nint x=1,y=2;\nfun(&y,&x);\nprintf(\" %d %d\\n\",x,y);\nreturn 0;\n}","options":{"A":"1 2 3 4","B":"1 2 2 1","C":"2 1 4 3","D":"1 2 1 2"},"answer":"C"},{"num":26,"stem":"若有以下定义，int a[10],*p=a; 则p+7表示（）。","options":{"A":"元素a[7]的值","B":"元素a[7]的地址","C":"元素a[8]的地址","D":"元素a[8]的值"},"answer":"B"},{"num":27,"stem":"若有函数声明  void func(int *x); ，调用该函数时传递变量  a （int 类型）的正确方式是（ ）","options":{"A":"func(a);","B":"func(&a);","C":"func(*a);","D":"func(&*a);"},"answer":"B"},{"num":28,"stem":"声明结构体时的关键字是。","options":{"A":"int","B":"char","C":"struct","D":"define"},"answer":"C"},{"num":29,"stem":"根据以下定义，下列能输出字母A的语句是__________。\nstruct person{char name[9]; int age;};\nstruct person class[10]={\"Tom\",17, \"John\",19, \"Susan\",18, \"Adam\",16};","options":{"A":"printf(\"%c\\n\",class[3].name);","B":"printf(\"%c\\n\",class[3].name[0]);","C":"printf(\"%c\\n\",class[3].name[1]);","D":"printf(\"%c\\n\",class[2].name[3]);"},"answer":"B"},{"num":30,"stem":"若有以下说明，且0<=i<10，则对数组元素的错误引用是（）。\nint a[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, *p = a, i;","options":{"A":"*(a+i)","B":"a[p-a+i]","C":"p+i","D":"*(&a[i])"},"answer":"C"},{"num":31,"stem":"假设变量s、a、b、c均已定义为整型变量，且a、c均已赋值（c大于0），则与以下程序段功能等价的赋值语句是（）。\ns = a;\nfor(b = 1; b <= c; b++)\ns = s + 1;","options":{"A":"s = a + b;","B":"s = a + c;","C":"s = s + c;","D":"s = b + c;"},"answer":"B"},{"num":32,"stem":"以下能对一维数组a进行初始化的语句是__________。","options":{"A":"int a[5]=(0,1,2,3,4,);","B":"int a(5)={};","C":"int a[3]={0,1,2};","D":"int a{5}={10*1};"},"answer":"C"},{"num":33,"stem":"有两个字符数组a,b，则以下正确的输入语句是（）","options":{"A":"gets(a,b);","B":"scanf(\"%s%s\",a,b);","C":"scanf(\"%s%s\",&a,&b);","D":"gets(\"a\"),gets(\"b\");"},"answer":"B"},{"num":34,"stem":"表达式1+2*3.14>0的结果类型是:","options":{"A":"int","B":"long","C":"float","D":"bool"},"answer":"D"},{"num":35,"stem":"设变量已正确定义，以下（ ）与其它switch语句不等价。","options":{"A":"switch(choice){\ncase 1: price = 3.0; break;\ncase 2: price = 2.5; break;\ncase 3: price = 4.0; break;\ncase 4: price = 3.5; break;\ndefault: price = 0.0; break;\n}","B":"switch(choice){\ndefault: price = 0.0; break;\ncase 4: price = 3.5; break;\ncase 3: price = 4.0; break;\ncase 2: price = 2.5; break;\ncase 1: price = 3.0; break;\n}","C":"switch(choice){\ncase 1: price = 3.0; break;\ncase 2: price = 2.5; break;\ncase 3: price = 4.0; break;\ncase 4: price = 3.5; break;\n}","D":"price = 0.0;\nswitch(choice){\ncase 1: price = 3.0; break;\ncase 2: price = 2.5; break;\ncase 3: price = 4.0; break;\ncase 4: price = 3.5; break;\n}"},"answer":"C"},{"num":36,"stem":"以下能对一维数组a进行正确初始化的语句是(          )。","options":{"A":"int a[10]=(0,0,0,0,0)","B":"int  a[2]={0,1,2}","C":"int  a[]={0}","D":"int a[]={{}}"},"answer":"C"},{"num":37,"stem":"执行下列程序段的输出结果是（）。\ndouble x = 2.5, y = 4.7;\nint a = 7;\nprintf(\"%.1f\", x + a%3 * (int)(x+y) % 2 / 4);","options":{"A":"2.5","B":"2.8","C":"3.5","D":"3.8"},"answer":"A"},{"num":38,"stem":"语句if(x=0) y=1; else y=2;与（ ）等价。","options":{"A":"if(x!=0) y=2;   else y=1;","B":"x=0;  if(x==0) y=2;  else y=1;","C":"if(x==0) y=1;   else y=2;","D":"if(x=0) y=2;   else y=1;"},"answer":"A"},{"num":39,"stem":"若\" int n; float f=13.8; \"，则执行\"n=(int)f%3\"后，n的值是（ ）。","options":{"A":"1","B":"4","C":"4.333333","D":"4.6"},"answer":"A"},{"num":40,"stem":"已知字母A的ASCII码为十进制的65，下面程序段的输出是（  ）。\nchar ch1,ch2;\nch1='A'+'5'-'3';\nch2='A'+'6'-'3';\nprintf(\"%d,%c\\n\",ch1,ch2);","options":{"A":"67,D","B":"B,C","C":"C,D","D":"不确定的值"},"answer":"A"},{"num":41,"stem":"下列运算符中，优先级最低的是（     ）。","options":{"A":"*","B":"=","C":"==","D":"%"},"answer":"B"},{"num":42,"stem":"已知x=10,y=20,z=30；以下语句执行后，x,y,z的值是（    ）。\nif x<y:\nz=x\nx=y\ny=z","options":{"A":"10,20,30","B":"10,20,20","C":"20,10,10","D":"20,10,30"},"answer":"C"},{"num":43,"stem":"定义如下变量和数组:\nint i;\nint a[3][3]={1,2,3,4,5,6,7,8,9};\n则下面语句的输出结果是（）\nfor(i=0;i<3;i++)\nprintf(\" %d\",a[2-i][i]);","options":{"A":"1 5 9","B":"7 5 3","C":"1 2 3","D":"7 8 9"},"answer":"B"},{"num":44,"stem":"阅读以下函数,此函数的功能是()。\nint fun(char* s1,char *s2)\n{   int i = 0;\nwhile(s1[i]==s2[ i ] && s2[i]!= '\\0') i++;\nreturn(s1[i]== '\\0’&& s2[i] == '\\0');    }","options":{"A":"将s2所指字符串赋给s1","B":"比较s1和s2所指字符串的大小, 若s1 比s2的大, 函数值为1, 否则函数值为0","C":"比较s1和s2所指字符串是否相等, 若相等, 函数值为1, 否则函数值为0","D":"比较s1和s2所指字符串的长度, 若s1比s2的长, 函数值为1, 否则函数值为0"},"answer":"C"},{"num":45,"stem":"以下关于switch分支语句的说法，正确的是（ ）。","options":{"A":"switch分支语句中的case标签必须是连续的整数。","B":"switch分支语句中的case标签可以是字符串。","C":"switch分支语句中，case标签可以是浮点型。","D":"switch分支语句中，case分支如果没有break语句，代码易出现错误。"},"answer":"D"},{"num":46,"stem":"在switch语句中，关于default，说法正确的是（    ）","options":{"A":"switch语句须有default","B":"default用于处理未与任何case标号匹配的情况","C":"每个switch语句中可以有多个default","D":"default须放在在switch语句的最后"},"answer":"B"},{"num":47,"stem":"switch语句使用正确的是（    ）","options":{"A":"switch(\"123\") {/* 语句 */}","B":"switch(3.14) {/* 语句 */}","C":"switch('A') {/* 语句 */}","D":"switch(1e2) {/* 语句 */}"},"answer":"C"},{"num":48,"stem":"要求通过whlie循环不断读入字符，当读入字母N时结束循环。若变量已正确定义，下列正确的程序段是：","options":{"A":"while ((ch=getchar())!='N') printf(\"%c\",ch);","B":"while (ch=getchar()!='N') printf(\"%c\",ch);","C":"while (ch=getchar()=='N') printf(\"%c\",ch);","D":"while ((ch=getchar())=='N') printf(\"%c\",ch);"},"answer":"A"},{"num":49,"stem":"（题目见图 image.png）","options":{"A":"char  a[ ]= “OK!”;","B":"char  a[8]= {‘O’,’K’,’!’,’\\0’};","C":"char  *p= “OK!”;","D":"char  a[8]; a= “OK!”;"},"answer":"D"},{"num":50,"stem":"对于for语句的使用，正确的是（    ）","options":{"A":"for( ; ; );","B":"for( , , );","C":"for( , ; );","D":"for( ; , );"},"answer":"A"},{"num":51,"stem":"声明并初始化一个字符型变量ch为字符'A'的语句（序列）是（    ）","options":{"A":"char ch='A';","B":"char ch=\"A\";","C":"char ch; ch='A';","D":"ch='A';"},"answer":"A/C"},{"num":52,"stem":"关于字符数组的初始化，错误的是（    ）","options":{"A":"char a[]={'a', 'b', 'c', 'd'};","B":"char a[]=\"abcd\";","C":"char a[5]={'a', 'b', 'c', 'd'};","D":"char a[5]; a=\"abcd\";"},"answer":"D"},{"num":53,"stem":"下列不是C语言的合法关键字的是__________。","options":{"A":"switch","B":"CHAR","C":"case","D":"default"},"answer":"B"},{"num":54,"stem":"已有如下定义和输入语句：\nint a,b;\nscanf(\"%d,%d\",&a,&b);\n若要求a、b的值分别为10和20，正确的数据输入是","options":{"A":"10  20","B":"10,20","C":"a=10,b=20","D":"10;20"},"answer":"B"},{"num":55,"stem":"以下标识符中，不合法的是（ ）。","options":{"A":"my4a","B":"_4a","C":"m_a","D":"4a"},"answer":"D"},{"num":56,"stem":"已知字母A的ASCII码为十进制数65，且ch为字符型变量，则执行语句ch='A'+'6'-'3';后，ch中的值为__。","options":{"A":"D","B":"68","C":"C","D":"不确定"},"answer":"A"},{"num":57,"stem":"以下叙述中正确的是","options":{"A":"一个结构体类型可以由多个称为成员（或域) 的成分组成","B":"在定义结构体类型时，编译程序就为它分配了内存空间","C":"结构体类型中的成分只能是C语言中预先定义的基本数据类型","D":"结构体类型中各个成分的类型必须是一致的"},"answer":"A"},{"num":58,"stem":"逻辑运算符两侧运算对象的数据类型（ ）。","options":{"A":"只能是 0 或 1","B":"只能是 0 或非 0 正数","C":"只能是整型或字符型的数据","D":"可以是任何类型的数据"},"answer":"D"},{"num":59,"stem":"如果int a=3,b=4；则条件表达式\"a<b? a:b\"的值是（   ）。","options":{"A":"3","B":"4","C":"0","D":"1"},"answer":"A"},{"num":60,"stem":"15.有以下程序\n#include <stdio.h>\nmain()\n{\nint  k=-17;\nprintf(\"%d,%o,%x\\n\", k, 1-k, 1-k);\n}\n程序的运行结果是","options":{"A":"-17,22,12","B":"-17,12,22","C":"-17,-22,-12","D":"17,22,12"},"answer":"A"},{"num":61,"stem":"若有以下说明语句，\nstruct birthday\n{\nint year;\nint month;\nint day;\n}day1;\n则下面叙述正确的是（ ）。","options":{"A":"day1为结构体类型名","B":"struct birthday为结构体变量名","C":"month为结构体变量名","D":"day1为结构体变量名"},"answer":"D"},{"num":62,"stem":"若变量已正确定义并赋值，表达式（ ）不符合C语言语法。","options":{"A":"5&&3","B":"int(5.5)","C":"+a","D":"a=b=c=3"},"answer":"B"},{"num":63,"stem":"下列选项正确的语句组是（ ）。","options":{"A":"char *s;s=\"hello!\";","B":"char *s;s=[\"hello!\"];","C":"char s[8];s=\"hello!\";","D":"char s[8];s={\"hello\"};"},"answer":"A"},{"num":64,"stem":"以下叙述错误的是（ ）。","options":{"A":"指针可以进行加、减等算术运算;","B":"指针中存放的是地址值","C":"指针是一个变量","D":"指针变量不占用存储空间"},"answer":"D"},{"num":65,"stem":"凡是函数中未指定存储类别的局部变量，其隐含的存储类别为（ ）。","options":{"A":"静态（static）","B":"自动（auto）","C":"外部（extern）","D":"寄存器（register）"},"answer":"B"},{"num":66,"stem":"设有程序段:\nint k=10;\nwhile(k=0) k=k-1;\n这下面描述中正确的是（ ）。","options":{"A":"while循环执行10次","B":"循环是无限循环","C":"循环体语句一次也不执行","D":"循环体语句执行一次"},"answer":"C"},{"num":67,"stem":"下面有关for循环的正确描述是（       ）。","options":{"A":"for循环只能用于循环次数已经确定的情况","B":"for循环是先执行循环体语句，后判断表达式","C":"在for循环中，三个表达式都不能省略","D":"for循环的循环体语句中，可以包含多条语句，但必须用大括号括起来"},"answer":"D"},{"num":68,"stem":"假定double类型变量占用8个字节，且数组定义如下，则数组point在内存中所占字节数是（ ）。\ndouble  point [10][10];","options":{"A":"0","B":"800","C":"10","D":"20","E":"100"},"answer":"B"},{"num":69,"stem":"若有定义语句：int a[3][6];，按在内存中的存放顺序，a数组的第10个元素是______。","options":{"A":"a[0][4]","B":"a[1][3]","C":"a[0][3]","D":"a[1][4]"},"answer":"B"},{"num":70,"stem":"对于以下递归函数f，当调用f(4)，其返回值为（） 。\nint f ( int  n )\n{\nif ( n != 0 )  return f(n - 1) + n;\nelse  return n;\n}","options":{"A":"10","B":"4","C":"0","D":"以上都不对"},"answer":"A"},{"num":71,"stem":"若读文件还未读到文件末尾， feof()函数的返回值是（  ）。","options":{"A":"-1","B":"0","C":"1","D":"非0"},"answer":"B"},{"num":72,"stem":"下列是合法的C语言标识符的是__________。","options":{"A":"*y","B":"sum","C":"int","D":"%5f"},"answer":"B"},{"num":73,"stem":"若 int i=10; 执行下列程序后，变量 i 的正确结果是(        )。\nswitch (i) {\ncase   9: i+=1 ;\ncase  10: i+=1 ;\ncase  11: i+=1 ;\ndefault  : i+=1 ;\n}","options":{"A":"10","B":"11","C":"12","D":"13"},"answer":"D"},{"num":74,"stem":"若执行下面的程序时从键盘上输入3和4，则输出是。\nmain()\n{\nint a,b,s;\nscanf(\"%d %d\",&a,&b);\ns=a;\nif(a<b)\ns=b;\ns=s*s;\nprintf(\"%d\\n\",s);\n}","options":{"A":"14","B":"16","C":"18","D":"20"},"answer":"B"},{"num":75,"stem":"下列程序段的输出结果是：\nint main()\n{\nint a=1,b=0,c=3;\nif(a<b)\nif(b<0) c==0;\nelse c++;\nprintf(\"%d\\n\",c);\nreturn 0;\n}","options":{"A":"0","B":"1","C":"2","D":"3"},"answer":"D"},{"num":76,"stem":"设x和y均为整型变量，则执行以下语句后，变量y的值为__________。\nfor(y=1,x=1;y<=50;y++)\n{   if(x>=0) break;\nif(x%2==1) {x+=5;continue;}\nx-=3;\n}","options":{"A":"2","B":"4","C":"6","D":"1"},"answer":"D"},{"num":77,"stem":"下面的这个循环的循环次数是（）。\nfor(int i=0,j=10; i=j=10; i++,j--)","options":{"A":"语法错误，不能执行","B":"无限次","C":"10","D":"1"},"answer":"B"},{"num":78,"stem":"下列程序段执行后s值为__。\nint i=5, s=0;\nwhile(i--)\nif (i%2) continue;\nelse s+=i;","options":{"A":"15","B":"10","C":"9","D":"6"},"answer":"D"},{"num":79,"stem":"下面程序运行时如果输入“-1 2 3 3 6 2<回车>”，则输出结果是\n#include <stdio.h>\nint main(void)\n{\nint t, a, b, i;\nfor (i = 1; i <= 3; i++) {\nscanf(\"%d%d\", &a, &b);\nif (a > b)t = a - b;\nelse if (a == b)t = 1;\nelse t = b - a;\nprintf(\"%d\", t);\n}\nreturn 0;\n}","options":{"A":"304","B":"314","C":"134","D":"316"},"answer":"B"},{"num":80,"stem":"若有说明语句：char c[]=\"\\n\"，则c（）。","options":{"A":"包含1个字符","B":"包含2个字符","C":"包含3个字符","D":"长度不定"},"answer":"A"},{"num":81,"stem":"对于二维数组的初始化，错误的是（    ）","options":{"A":"int a[3][4]={1, 2, 3, 4, 5, 6, 7, 8, 9, 10};","B":"int a[][4]={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};","C":"int a[3][]={{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};","D":"int a[][4]={{1}, {2,3}, {4,5,6}};"},"answer":"C"},{"num":82,"stem":"以下正确的描述是：在C语言程序中。（）","options":{"A":"函数的定义可以嵌套,但函数的调用不可以嵌套","B":"函数的定义和函数的调用均不可以嵌套","C":"函数的定义和函数的调用均可以嵌套","D":"函数的定义不可以嵌套,但函数的调用可以嵌套"},"answer":"D"},{"num":83,"stem":"以下哪个问题不适合用递归解决（  ）","options":{"A":"阶乘计算","B":"斐波那契数列","C":"简单的两数相加","D":"二叉树遍历"},"answer":"C"},{"num":84,"stem":"以下哪一条不属于程序设计的3种基本结构？","options":{"A":"顺序结构","B":"选择结构","C":"逆转结构","D":"循环结构"},"answer":"C"},{"num":85,"stem":"如下所示，为了将3.141593输入给变量d，应该在scanf函数中填入哪个格式符（）。\ndouble d;\nscanf(“   “, &d);","options":{"A":"%f","B":"%.6f","C":"%d","D":"%lf"},"answer":"D"},{"num":86,"stem":"下列运算符中，优先级最低的是____。","options":{"A":"*","B":"!=","C":"+","D":"="},"answer":"D"},{"num":87,"stem":"以下标识符中，不合法的是（ ）。","options":{"A":"4d","B":"_8_d","C":"Int","D":"key"},"answer":"A"},{"num":88,"stem":"已知字符'c' 的ASCII码为99，语句printf (\"%d,%c\",'c','c'+1); 的输出为（  ）。","options":{"A":"99,c","B":"99,100","C":"99,d","D":"语句不合法"},"answer":"C"},{"num":89,"stem":"阅读以下程序段，如果从键盘上输入1234567<回车>，则程序的运行结果是（ ）。\nint i,j;\nscanf(\"%3d%2d\",&i,&j);\nprintf(\"i = %d, j = %d\\n\",i,j);","options":{"A":"i = 123, j = 4567","B":"i = 1234, j = 567","C":"i = 1, j = 2","D":"i = 123, j = 45"},"answer":"D"},{"num":90,"stem":"C语言表达式（    ）的值不等于1。","options":{"A":"123/100","B":"901%10","C":"76%3","D":"625%5"},"answer":"D"},{"num":91,"stem":"对下列代码的描述:\n#include \"stdio.h\"\nint main(){\nlong num=1;\nwhile(num++ > 0) for(long i=num; i >=0; i--)printf(\"i :=\\n \\t %ld \\n\" , i);\nreturn 0;\n}\n正确的是：","options":{"A":"程序有编译错误，不能执行","B":"循环条件永为真，循环无限次，程序根本停不下来，打印输出无限行","C":"循环有限次，程序正常结束，打印输出有限行","D":"程序运行过程必定会出错（崩溃），结果打印输出有限行"},"answer":"B"},{"num":92,"stem":"要求通过 while 循环不断输出字符，当读入字母 N 时结束循环。若变量已正确定义，下列程序段正确的是（  ）。","options":{"A":"while ((ch = getchar()) == 'N')\nprintf(\"%c\", ch);","B":"while (ch = getchar() == 'N')\nprintf(\"%c\", ch);","C":"while ( (ch = getchar( )) != 'N')\nprintf(\"%c\", ch);","D":"while (ch = getchar() != 'N')\nprintf(\"%c\", ch);"},"answer":"C"},{"num":93,"stem":"以下不正确的说法是（）。","options":{"A":"实参可以是常量、变量或表达式","B":"实参可以是任何类型","C":"形参可以是常量、变量或表达式","D":"形参应与对应的实参类型一致"},"answer":"C"},{"num":94,"stem":"若p1、p2都是整型指针，p1已经指向变量x，要使p2也指向x, ____是正确的。","options":{"A":"p2=p1","B":"p2=**p1","C":"p2=&p1","D":"p2=*p1"},"answer":"A"},{"num":95,"stem":"若有int *p,  a=4;  和  p=&a;  下面（ ）均代表地址。","options":{"A":"a,  p,  *&a","B":"&*a,  &a,  *p","C":"*&p,  *p,  &a","D":"&a,  &*p,  p"},"answer":"D"},{"num":96,"stem":"根据声明int (*p)[10], p是一个（   ）。","options":{"A":"数组","B":"指针","C":"函数","D":"数组的元素"},"answer":"B"},{"num":97,"stem":"在基类型相同的两个指针变量之间，不能进行的运算是（ ）。","options":{"A":"<","B":"=","C":"+","D":"–"},"answer":"C"},{"num":98,"stem":"下列程序段输出结果为 ____。\nint x = -3, y = 2;\nif(x>y);\nx = -x;\nif(x<y)\ny = -y;\nprintf(\"x=%d,y=%d\\n\", x, y);","options":{"A":"x=3,y=-2","B":"x=3,y=2","C":"x=-3,y=2","D":"x=-3,y=-2"},"answer":"C"},{"num":99,"stem":"若a、b、c1、c2、x、y均是整型变量，以下正确的switch语句是","options":{"A":"switch(a+b);\n{    case 1: y=a+b; break;\ncase 0:y=a-b; break;}","B":"switch(a*a+b*b)\n{\ncase 3:\ncase 1: y=a+b; break;\ncase 3: y=b-a, break;}","C":"switch a\n{    case c1: y=a-b; break;\ncase c2: x=a*b; break;\ndefault: x=a+b; }","D":"switch(a-b)\n{    default: y=a*b; break;\ncase 3: case 4: x=a+b; break;\ncase 10: case 11: y=a-b; break; }"},"answer":"D"},{"num":100,"stem":"已知int x=10,y=20,z=30;以下语句：if(x>y) z=x; x=y; y=z;执行后x,y,z的值是（ ）。","options":{"A":"x=10, y=20, z=30","B":"x=20, y=30, z=30","C":"x=20, y=10, z=10","D":"x=20, y=30, z=10"},"answer":"B"},{"num":101,"stem":"判断字符串 a 和 b 是否相等，应当使用（）。","options":{"A":"if (a==b)","B":"if (a=b)","C":"if (strcpy(a,b))","D":"if (strcmp(a,b)==0)"},"answer":"D"},{"num":102,"stem":"下列程序的输出结果是（      ）。\nint main(void)\n{\nint n[3],i,j,k;\nfor(i=0;i<3;i++)\nn[i]=0;\nk=2;\nfor (i=0;i<k;i++)\nfor (j=0;j<k;j++)\nn[j]=n[i]+1;\nprintf(\"%d\\n\",n[1]);\nreturn 0;\n}","options":{"A":"2","B":"1","C":"0","D":"3"},"answer":"D"},{"num":103,"stem":"有数组初始化语句“int a[4]={1,2,3,4};”，则a[3]的值为(    )","options":{"A":"4","B":"3","C":"2","D":"1"},"answer":"A"},{"num":104,"stem":"用冒泡排序对4，5，6，3，2，1进行从小到大排序，第三趟排序后的状态为(      )。","options":{"A":"4  5  3  2  1  6","B":"4  3  2  1  5  6","C":"3  2  1  4  5  6","D":"2  1  3  4  5  6"},"answer":"B"},{"num":105,"stem":"下列程序的输出结果是(      )。\n# include <stdio.h>\nint main(void)\n{\nint a[10] = {0,1,2,3,4,5,6,7,8,9}, *p = a+3;\nprintf(\"%d\", p[2]);\nreturn 0;\n}","options":{"A":"3","B":"4","C":"5","D":"非法"},"answer":"C"},{"num":106,"stem":"若程序中有下面的说明和定义，则会发生的情况是（   ）。\nstruct abc {\nint x;\nchar y;\n};\nstruct abc s1, s2;","options":{"A":"编译出错","B":"程序将顺利编译、连接、执行","C":"能顺利通过编译、连接，但不能执行","D":"能顺利通过编译，但连接出错"},"answer":"B"},{"num":107,"stem":"以下程序的输出结果是（）。\nint main(void)\n{\nint  m[ ][3] = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };\nint  i, j, k=2;\nfor (i=0; i<3; i++)\nprintf (\"%d \", m[k][i]);\nreturn 0;\n}","options":{"A":"4 5 6","B":"2 5 8","C":"3 6 9","D":"7 8 9"},"answer":"C"},{"num":108,"stem":"下列程序段的功能是：计算数组x中相邻两个元素的和，依次存放到 a 数组中，然后输出a数组。程序段中待填空的（1）和（2）的正确选项是（ ）。\nint i;\nint a[9], x[10];\nfor(i = 0; i < 10; i++){\nscanf(\"%d\", &x[i]);\n}\nfor(    (1)    ; i < 10; i++ ) { /* 此处待填空（1） */\na[i-1] = x[i] +    (2)    ;  /* 此处待填空（2） */\n}\nfor(i = 0; i < 9; i++){\nprintf(\"%d \",a[i]);\n}\nprintf(\"\\n\");","options":{"A":"(1) i = 1\n(2) x[i+1]","B":"(1) i = 0\n(2) x[i-1]","C":"(1)  i = 1\n(2) x[i-1]","D":"(1) i = 0\n(2) x[i+1]"},"answer":"C"},{"num":109,"stem":"执行下列程序段后，变量c的值是（）。\nint a, b, c;\na = 10, b = 20;\nc = (a%2 == 0) ? a : b；","options":{"A":"0","B":"5","C":"10","D":"20"},"answer":"C"},{"num":110,"stem":"设以下变量均为int类型，表达式的值不为 9 的是（）。","options":{"A":"(x = y = 8, x+y, x+1)","B":"(x = y = 8, x+y, y+1)","C":"(x = 8, x+1, y = 8, x+y)","D":"(y = 8, y+1, x = y, x+1)"},"answer":"C"},{"num":111,"stem":"建立自定义函数的目的之一是（）。","options":{"A":"提高程序的执行效率","B":"提高程序的可读性","C":"减少程序的篇幅","D":"减少程序文件所占内存"},"answer":"B"},{"num":112,"stem":"以下正确的函数定义形式是（）。","options":{"A":"double fun(int x, int y)","B":"double fun(int x ; int y)","C":"double fun(int x, int y);","D":"double fun(int x, y)"},"answer":"A"},{"num":113,"stem":"设整型变量a=2，则执行下列语句后，浮点型变量b的值不为0.5的是（ ）。","options":{"A":"b=1.0/a;","B":"b=(float) (1/a);","C":"b=1/(float)a;","D":"b=1/(a*1.0);"},"answer":"B"},{"num":114,"stem":"若有定义int x=3, y=2和float a=2.5, b=3.5，则表达式：(x+y)%2+(int)a/(int)b的值是（ ）。","options":{"A":"0","B":"2","C":"1.5","D":"1"},"answer":"D"},{"num":115,"stem":"运行以下程序后，如果从键盘上输入65  14<回车>，则输出结果为（）。\nint main(void)\n{\nint  m, n;\nprintf(\"Enter m,n;\");\nscanf(\"%d%d\", &m,&n);\nwhile (m != n)\n{   while (m > n)       m = m - n;\nwhile (n > m)       n = n - m;\n}\nprintf(\"m=%d\\n\",m);\nreturn 0;\n}","options":{"A":"m=3","B":"m=2","C":"m=1","D":"m=0"},"answer":"C"},{"num":116,"stem":"执行以下程序段后，变量i的值是（  ）\nint i = 2;\ndo {\ni = i + 5;\n} while (i < 15);","options":{"A":"16","B":"17","C":"20","D":"21"},"answer":"B"},{"num":117,"stem":"在嵌套使用if语句时，C语言规定else总是（）。","options":{"A":"和之前与其具有相同缩进位置的if配对","B":"和之前与其最近的if配对","C":"和之前与其最近的且不带else的if配对","D":"和之前的第一个if配对"},"answer":"C"},{"num":118,"stem":"有一函数（题目见图 33.png）\n，以下程序段中错误的是（）。","options":{"A":"if(x > 0) y = 1;\nelse if(x == 0) y = 0；\nelse y = -1;","B":"y = 0;\nif(x > 0) y = 1;\nelse if(x < 0) y = -1;","C":"y = 0;\nif(x >= 0);\nif(x > 0) y = 1;\nelse y = -1;","D":"if(x >= 0)\nif(x > 0) y = 1;\nelse y = 0;\nelse y = -1;"},"answer":"C"},{"num":119,"stem":"下列程序段的输出结果是 （）。\nint main(void)\n{\nint x = 1, a = 0, b = 0;\nswitch(x)\n{\ncase 0:   b++;\ncase 1:   a++;\ncase 2:   a++; b++;\n}\nprintf(\"a=%d,b=%d\\n\",a,b);\nreturn 0;\n}","options":{"A":"a=2,b=1","B":"a=1,b=1","C":"a=1,b=0","D":"a=2,b=2"},"answer":"A"},{"num":120,"stem":"下面合法的C语言字符常量是（）。","options":{"A":"'\\t'","B":"\"A\"","C":"'xx'","D":"A"},"answer":"A"},{"num":121,"stem":"下面的程序段输出是（  ）。\nint k=11;\nprintf(\"k=%d,k=%o,k=%x\\n\",k,k,k);","options":{"A":"k=11,k=12,k=11","B":"k=11,k=13,k=13","C":"k=11,k=013;k=0xb","D":"k=11,k=13,k=b"},"answer":"D"},{"num":122,"stem":"如果有定义：int m, n = 5, *p = &m; 与m = n 等价的语句是 （） 。","options":{"A":"m = *p;","B":"*p = *&n;","C":"m = &n;","D":"m = **p;"},"answer":"B"},{"num":123,"stem":"结构体类型声明如下，设每个int类型数据占4个字节，则s占用的内存字节数是(    )。\nstruct Stu{\nint  score[50];\nfloat  average;\n}s;","options":{"A":"104","B":"204","C":"208","D":"108"},"answer":"B"},{"num":124,"stem":"C语言的简单数据类型包括__________。","options":{"A":"整型、浮点型、逻辑型","B":"整型、逻辑型、字符型","C":"整型、字符型、逻辑型","D":"整型、浮点型、字符型"},"answer":"D"},{"num":125,"stem":"设有数组定义：char array1[]=“victory”;char array2[10]=“victory”，则数组array1和array2所占用的存储空间分别为（\n）。","options":{"A":"8 10","B":"7 10","C":"7 7","D":"8 8"},"answer":"A"},{"num":126,"stem":"已知如下形式的数组定义，则数组array所占的空间为__________。\nchar array []={\"abcd\"};","options":{"A":"4 字节","B":"5字节","C":"6字节","D":"7字节"},"answer":"B"},{"num":127,"stem":"数组定义为 int a[3][2]={1, 2, 3, 4, 5, 6}，数组元素____的值为6。","options":{"A":"a[3][2]","B":"a[2][1]","C":"a[1][2]","D":"a[2][3]"},"answer":"B"},{"num":128,"stem":"定义了int型二维数组a[6][7]后，数组元素a[3][4]前的数组元素个数为( )","options":{"A":"24","B":"25","C":"18","D":"17"},"answer":"B"},{"num":129,"stem":"若二维数组a有m列,则在a[i][j]前的元素个数为(   ).","options":{"A":"i*m+j+1","B":"j*m+i","C":"i*m+j","D":"j*m+i+1"},"answer":"C"},{"num":130,"stem":"若有说明“int a[][3]={1,2,3,4,5,6,7};”,则a数组第一维的大小是：","options":{"A":"2","B":"3","C":"4","D":"无确定值"},"answer":"B"},{"num":131,"stem":"要调用数学处理函数时，在#include命令行中应包含（）。","options":{"A":"\"stdio.h\"","B":"\"string.h\"","C":"\"math.h\"","D":"\"ctype.h\""},"answer":"C"},{"num":132,"stem":"对于以下递归函数f，调用f(4)，其返回值为（） 。\nint f(int n)\n{    if (n)  return f(n - 1) + n;\nelse return n;\n}","options":{"A":"10","B":"4","C":"0","D":"以上均不是"},"answer":"A"},{"num":133,"stem":"宏定义“#define DIV(a, b) a/b”，经DIV(x + 5, y - 5) 引用，替换展开后是（）。","options":{"A":"x + 5 / y - 5","B":"(x + 5 / y – 5)","C":"(x + 5) / (y - 5)","D":"(x + 5) / (y - 5);"},"answer":"A"},{"num":134,"stem":"程序员要想调用输入输出函数，需要在程序的开头写上语句(  )。","options":{"A":"#include <stdlib.h>","B":"#include <stdio.h>","C":"#include <math.h>","D":"#include <string.h>"},"answer":"B"}]};
+
+  const LS_KEY = "quiz_autograde_v2_" + (DATA.meta?.title || "quiz");
+
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  
+  function normalizeAnswer(ans) {
+    if (Array.isArray(ans)) return ans.map(x => String(x).trim()).filter(Boolean);
+    const s = String(ans ?? "").toUpperCase().trim();
+    if (!s) return [];
+    const letters = s.match(/[A-Z]/g) || [];
+    const out = [];
+    for (const ch of letters) { if (!out.includes(ch)) out.push(ch); }
+    return out;
+  }
+
+function el(tag, attrs = {}, children = []) {
+    const e = document.createElement(tag);
+    for (const [k,v] of Object.entries(attrs)) {
+      if (k === "class") e.className = v;
+      else if (k === "html") e.innerHTML = v;
+      else if (k.startsWith("on") && typeof v === "function") e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v);
+    }
+    for (const c of children) {
+      if (c == null) continue;
+      if (typeof c === "string") e.appendChild(document.createTextNode(c));
+      else e.appendChild(c);
+    }
+    return e;
+  }
+
+  function loadState() {
+    try {
+      return JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function saveState(state) {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    setStatus("已自动保存", false);
+  }
+
+  function setStatus(msg, sticky) {
+    const bar = document.getElementById("statusBar");
+    const t = new Date();
+    const hh = String(t.getHours()).padStart(2,"0");
+    const mm = String(t.getMinutes()).padStart(2,"0");
+    bar.innerHTML = `<b>${esc(msg)}</b> · ${hh}:${mm}`;
+    if (!sticky) {
+      clearTimeout(setStatus._tm);
+      setStatus._tm = setTimeout(() => {
+        bar.innerHTML = bar.innerHTML.replace(/<b>.*?<\/b>/, "<b>未判分</b>");
+      }, 1500);
+    }
+  }
+
+    function buildSidebar() {
+      const jWrap = document.getElementById("navJudge");
+      const sWrap = document.getElementById("navSingle");
+      if (!jWrap || !sWrap) return;
+  
+      const makeItem = (qid, label) => {
+        const a = document.createElement("a");
+        a.className = "nav-item";
+        a.dataset.qid = qid;
+        a.href = `#q-${qid}`;
+        a.textContent = label;
+        a.title = qid;
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          scrollToQ(qid);
+          setActiveNav(qid);
+        });
+        return a;
+      };
+  
+      jWrap.innerHTML = "";
+      for (const q of DATA.judge) {
+        const qid = `J${q.num}`;
+        jWrap.appendChild(makeItem(qid, String(q.num)));
+      }
+  
+      sWrap.innerHTML = "";
+      for (const q of DATA.single) {
+        const qid = `S${q.num}`;
+        sWrap.appendChild(makeItem(qid, String(q.num)));
+      }
+    }
+
+
+  function render() {
+    const state = loadState();
+    const judgeList = document.getElementById("judgeList");
+    const singleList = document.getElementById("singleList");
+    judgeList.innerHTML = "";
+    singleList.innerHTML = "";
+
+    // 判分缓存
+    const lastGrade = state._grade || null;
+
+    // 判断题
+    for (const q of DATA.judge) {
+      const qid = `J${q.num}`;
+      const chosen = state[qid] ?? "";
+      const qBox = el("div", {class:"q", id:`q-${qid}`});
+      const head = el("div", {class:"q-head"}, [
+        el("div", {class:"q-title"}, [`判断 ${q.num}`]),
+        el("div", {class:"q-meta"}, [
+          el("span", {class:"tag"}, ["1分"]),
+          el("span", {class:"tag warn", id:`tag-${qid}`}, ["未判分"]),
+        ])
+      ]);
+      const stem = el("div", {class:"stem", html: esc(q.stem)});
+
+      const opts = el("div", {class:"options"});
+      for (const letter of ["T","F"]) {
+        const name = `ans-${qid}`;
+        const optId = `${qid}-${letter}`;
+        const labelText = (letter === "T" ? "T（正确）" : "F（错误）");
+        const opt = el("label", {class:"opt", for:optId});
+        const radio = el("input", {
+          type: "radio",
+          name,
+          id: optId,
+          value: letter
+        });
+        radio.checked = (chosen === letter);
+        radio.addEventListener("change", () => {
+          const st = loadState();
+          st[qid] = letter;
+          // 作答变更后，清掉之前判分结果
+          delete st._grade;
+          saveState(st);
+          // 视觉刷新：只更新自己
+          applyChoiceVisual(qid, st[qid]);
+        });
+        opt.appendChild(radio);
+        opt.appendChild(el("div", {class:"letter"}, [letter]));
+        opt.appendChild(el("div", {class:"text"}, [labelText]));
+        opts.appendChild(opt);
+      }
+
+      const ansLine = el("div", {class:"answer-line", id:`ans-${qid}`});
+      ansLine.innerHTML = `正确答案：<b>${esc(q.answer)}</b>`;
+
+      qBox.appendChild(head);
+      qBox.appendChild(stem);
+      qBox.appendChild(opts);
+      qBox.appendChild(ansLine);
+
+      judgeList.appendChild(qBox);
+    }
+
+    // 单选题
+    for (const q of DATA.single) {
+      const qid = `S${q.num}`;
+      const chosen = state[qid] ?? "";
+      const qBox = el("div", {class:"q", id:`q-${qid}`});
+      const head = el("div", {class:"q-head"}, [
+        el("div", {class:"q-title"}, [`单选 ${q.num}`]),
+        el("div", {class:"q-meta"}, [
+          el("span", {class:"tag"}, ["1分"]),
+          el("span", {class:"tag warn", id:`tag-${qid}`}, ["未判分"]),
+        ])
+      ]);
+      const stem = el("div", {class:"stem", html: esc(q.stem)});
+
+      const opts = el("div", {class:"options"});
+      const letters = Object.keys(q.options || {}).sort();
+      for (const letter of letters) {
+        const name = `ans-${qid}`;
+        const optId = `${qid}-${letter}`;
+        const opt = el("label", {class:"opt", for:optId});
+        const radio = el("input", {
+          type: "radio",
+          name,
+          id: optId,
+          value: letter
+        });
+        radio.checked = (chosen === letter);
+        radio.addEventListener("change", () => {
+          const st = loadState();
+          st[qid] = letter;
+          delete st._grade;
+          saveState(st);
+          applyChoiceVisual(qid, st[qid]);
+        });
+        opt.appendChild(radio);
+        opt.appendChild(el("div", {class:"letter"}, [letter]));
+        opt.appendChild(el("div", {class:"text"}, [q.options[letter]]));
+        opts.appendChild(opt);
+      }
+
+      const ansLine = el("div", {class:"answer-line", id:`ans-${qid}`});
+      ansLine.innerHTML = `正确答案：<b>${esc(q.answer)}</b>${q.note ? ` <span style="color:#9ca3af">（${esc(q.note)}）</span>` : ""}`;
+
+      qBox.appendChild(head);
+      qBox.appendChild(stem);
+      qBox.appendChild(opts);
+      qBox.appendChild(ansLine);
+
+      singleList.appendChild(qBox);
+    }
+
+    // 应用之前判分结果（如果有）
+    if (lastGrade) {
+      applyGrade(lastGrade, /*showToast*/ false);
+    }
+
+    refreshTopStats();
+    applyAnswerVisibility(loadState()._showAnswers === true);
+    initCurrentQuestionObserver();
+  }
+
+  function applyChoiceVisual(qid, chosen) {
+    // 仅刷新 qid 对应题目，不做判分
+    const box = document.getElementById(`q-${qid}`);
+    if (!box) return;
+    box.classList.remove("correct","wrong","unanswered");
+    const tag = document.getElementById(`tag-${qid}`);
+    if (tag) {
+      tag.className = "tag warn";
+      tag.textContent = "未判分";
+    }
+    // 清理选项的正确/错误标记
+    box.querySelectorAll(".opt").forEach(o => o.classList.remove("correct","wrong"));
+  }
+
+  function gradeNow() {
+    const st = loadState();
+    let total = 0, got = 0;
+    let judgeTotal = 0, judgeGot = 0;
+    let singleTotal = 0, singleGot = 0;
+    const per = {};
+
+    // judge
+    for (const q of DATA.judge) {
+      const qid = `J${q.num}`;
+      judgeTotal++; total++;
+      const chosen = st[qid] ?? "";
+      const correct = q.answer;
+      const correctSet = normalizeAnswer(correct);
+      const status = chosen ? (correctSet.includes(chosen) ? "correct" : "wrong") : "unanswered";
+      if (status === "correct") { judgeGot++; got++; }
+      per[qid] = { chosen, correct, status };
+    }
+
+    // single
+    for (const q of DATA.single) {
+      const qid = `S${q.num}`;
+      singleTotal++; total++;
+      const chosen = st[qid] ?? "";
+      const correct = q.answer;
+      const correctSet = normalizeAnswer(correct);
+      const status = chosen ? (correctSet.includes(chosen) ? "correct" : "wrong") : "unanswered";
+      if (status === "correct") { singleGot++; got++; }
+      per[qid] = { chosen, correct, status };
+    }
+
+    const result = {
+      total, got,
+      judgeTotal, judgeGot,
+      singleTotal, singleGot,
+      per,
+      ts: Date.now()
+    };
+
+    // 存进状态
+    st._grade = result;
+    saveState(st);
+    applyGrade(result, /*showToast*/ true);
+    refreshTopStats();
+  }
+
+  function applyGrade(grade, showToast) {
+    for (const [qid, info] of Object.entries(grade.per || {})) {
+      const box = document.getElementById(`q-${qid}`);
+      if (!box) continue;
+      box.classList.remove("correct","wrong","unanswered");
+      box.classList.add(info.status);
+
+      const tag = document.getElementById(`tag-${qid}`);
+      if (tag) {
+        tag.classList.remove("ok","bad","warn");
+        if (info.status === "correct") {
+          tag.className = "tag ok";
+          tag.textContent = "正确";
+        } else if (info.status === "wrong") {
+          tag.className = "tag bad";
+          tag.textContent = "错误";
+        } else {
+          tag.className = "tag warn";
+          tag.textContent = "未答";
+        }
+      }
+
+      // 标注选项
+      box.querySelectorAll(".opt").forEach(opt => {
+        opt.classList.remove("correct","wrong");
+        const radio = opt.querySelector("input[type=radio]");
+        if (!radio) return;
+        const v = radio.value;
+        const corrList = normalizeAnswer(info.correct);
+        if (corrList.includes(v)) opt.classList.add("correct");
+        if (info.chosen && v === info.chosen && !corrList.includes(info.chosen)) opt.classList.add("wrong");
+      });
+    }
+
+    const msg = `总分 ${grade.total}，得分 ${grade.got}（判断 ${grade.judgeGot}/${grade.judgeTotal}，单选 ${grade.singleGot}/${grade.singleTotal}）`;
+    document.getElementById("statusBar").innerHTML = `<b>${esc(msg)}</b>`;
+    if (showToast) {
+      setStatus(msg, true);
+    }
+  }
+
+  function refreshTopStats() {
+    const st = loadState();
+    const g = st._grade;
+    const judgeAnswered = DATA.judge.filter(q => (st[`J${q.num}`] ?? "") !== "").length;
+    const singleAnswered = DATA.single.filter(q => (st[`S${q.num}`] ?? "") !== "").length;
+    const totalAnswered = judgeAnswered + singleAnswered;
+    const total = DATA.judge.length + DATA.single.length;
+
+    const top = document.getElementById("statsTop");
+    const score = g ? `得分 <strong>${g.got}</strong>/${g.total}` : "未判分";
+    top.innerHTML = `
+      <span class="pill">进度 <strong>${totalAnswered}</strong>/${total}</span>
+      <span class="pill">判断 <strong>${judgeAnswered}</strong>/${DATA.judge.length}</span>
+      <span class="pill">单选 <strong>${singleAnswered}</strong>/${DATA.single.length}</span>
+      <span class="pill">${score}</span>
+    `;
+
+    const sj = document.getElementById("sideJudgeStat");
+    if (sj) sj.textContent = `${judgeAnswered}/${DATA.judge.length}`;
+    const ss = document.getElementById("sideSingleStat");
+    if (ss) ss.textContent = `${singleAnswered}/${DATA.single.length}`;
+  }
+
+  function applyAnswerVisibility(show) {
+    document.querySelectorAll(".answer-line").forEach(e => {
+      e.classList.toggle("show", show);
+    });
+    document.getElementById("btnToggleAnswers").textContent = show ? "隐藏答案" : "显示答案";
+  }
+
+  function clearChoices() {
+    const st = loadState();
+    for (const q of DATA.judge) delete st[`J${q.num}`];
+    for (const q of DATA.single) delete st[`S${q.num}`];
+    delete st._grade;
+    saveState(st);
+    render();
+  }
+
+  function resetAll() {
+    localStorage.removeItem(LS_KEY);
+    render();
+    setStatus("已清空本页所有保存", true);
+  }
+
+  function scrollToQ(qid) {
+    const elQ = document.getElementById(`q-${qid}`);
+    if (elQ) elQ.scrollIntoView({behavior:"smooth", block:"start"});
+    setActiveNav(qid);
+  }
+
+  let __activeQid = null;
+  let __qObserver = null;
+
+  function setActiveNav(qid){
+    const side = document.getElementById("sideNav");
+    if (!side) return;
+    if (__activeQid === qid) return;
+
+    if (__activeQid) {
+      const old = side.querySelector(`.nav-item[data-qid="${__activeQid}"]`);
+      if (old) old.classList.remove("active");
+    }
+
+    const now = side.querySelector(`.nav-item[data-qid="${qid}"]`);
+    if (now) {
+      now.classList.add("active");
+      __activeQid = qid;
+    }
+  }
+
+  function initCurrentQuestionObserver(){
+    if (__qObserver) {
+      try { __qObserver.disconnect(); } catch(e) {}
+      __qObserver = null;
+    }
+
+    const boxes = Array.from(document.querySelectorAll(".q[id^='q-']"))
+      .filter(x => x.style.display !== "none");
+    if (!boxes.length) return;
+
+    // 页面初始/重渲染时先高亮第一题，避免没有高亮
+    setActiveNav(boxes[0].id.replace(/^q-/, ""));
+
+    // 选“视口中部附近”的题目作为当前题
+    __qObserver = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter(e => e.isIntersecting)
+        .sort((a,b) => (b.intersectionRatio||0) - (a.intersectionRatio||0));
+      if (!visible.length) return;
+      const id = visible[0].target.id; // q-J12 / q-S3
+      const qid = id.replace(/^q-/, "");
+      setActiveNav(qid);
+    }, {
+      root: null,
+      rootMargin: "-35% 0px -55% 0px",
+      threshold: [0.15, 0.35, 0.55]
+    });
+
+    boxes.forEach(box => __qObserver.observe(box));
+  }
+
+  function filterShow(mode) {
+    const st = loadState();
+    const g = st._grade;
+    const all = document.querySelectorAll(".q");
+    all.forEach(x => x.style.display = "");
+    if (!mode) { initCurrentQuestionObserver(); return; }
+
+    if (mode === "unanswered") {
+      all.forEach(box => {
+        const id = box.id.replace(/^q-/, "");
+        const val = st[id] ?? "";
+        if (val) box.style.display = "none";
+      });
+      initCurrentQuestionObserver();
+      return;
+    }
+
+    if (mode === "wrong") {
+      if (!g) { initCurrentQuestionObserver(); return; }
+      all.forEach(box => {
+        const id = box.id.replace(/^q-/, "");
+        const info = g.per?.[id];
+        if (!info || info.status !== "wrong") box.style.display = "none";
+      });
+      initCurrentQuestionObserver();
+    }
+  }
+
+  // Events
+  document.getElementById("btnGrade").addEventListener("click", gradeNow);
+  document.getElementById("btnClear").addEventListener("click", clearChoices);
+  document.getElementById("btnReset").addEventListener("click", resetAll);
+
+  document.getElementById("btnToggleAnswers").addEventListener("click", () => {
+    const st = loadState();
+    st._showAnswers = !(st._showAnswers === true);
+    saveState(st);
+    applyAnswerVisibility(st._showAnswers === true);
+  });
+
+  document.getElementById("btnFilterUnanswered").addEventListener("click", () => filterShow("unanswered"));
+  document.getElementById("btnFilterWrong").addEventListener("click", () => filterShow("wrong"));
+  document.getElementById("btnShowAll").addEventListener("click", () => filterShow(null));
+
+  document.getElementById("jumpInput").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const v = e.target.value.trim();
+    if (!v) return;
+
+    const mJudge = v.match(/^j(\d+)$/i);
+    if (mJudge) {
+      scrollToQ(`J${parseInt(mJudge[1],10)}`);
+      return;
+    }
+    const mNum = v.match(/^(\d+)$/);
+    if (mNum) {
+      scrollToQ(`S${parseInt(mNum[1],10)}`);
+      return;
+    }
+  });
+
+  function syncAffixHeights(){
+    const h = document.querySelector("header");
+    const b = document.querySelector(".bottom-bar");
+    const headerH = h ? Math.round(h.getBoundingClientRect().height) : 0;
+    const bottomH = b ? Math.round(b.getBoundingClientRect().height) : 0;
+    document.documentElement.style.setProperty("--headerH", headerH + "px");
+    document.documentElement.style.setProperty("--bottomH", bottomH + "px");
+  }
+
+  // Init
+  buildSidebar();
+  render();
+  syncAffixHeights();
+  window.addEventListener('resize', syncAffixHeights);
+
+</script>
+</body>
+</html>
